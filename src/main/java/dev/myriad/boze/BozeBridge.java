@@ -2,6 +2,7 @@ package dev.myriad.boze;
 
 import dev.boze.api.BozeInstance;
 import dev.boze.api.addon.Addon;
+import dev.boze.api.client.FriendManager;
 import dev.boze.api.client.ModuleManager;
 import dev.boze.api.client.module.BaseModule;
 import dev.boze.api.internal.Instances;
@@ -24,7 +25,8 @@ import java.util.Map;
  *       Myriad the same tick);</li>
  *   <li>every half second, settings and binds are read back from Boze, so edits made in Boze's own GUI or a profile it
  *       loaded appear in Myriad;</li>
- *   <li>every second, modules Boze gained since (its addons load after it) are bridged too.</li>
+ *   <li>every second, modules Boze gained since (its addons load after it) are bridged too, and the two friend
+ *       lists are reconciled ({@link FriendSync}).</li>
  * </ul>
  * Reads are plain field getters, a few thousand per second at most, so this costs nothing measurable; Boze has no
  * change events for settings, so polling is the only way to notice its side.
@@ -36,12 +38,16 @@ final class BozeBridge {
 	private final List<BozeModule> mirrors = new ArrayList<>();
 	/** Categories registered for Boze addons' own category names. */
 	private final Map<String, Category> addonCategories = new HashMap<>();
+	private final FriendSync friends = new FriendSync(
+		new FriendSync.Side(() -> Myriad.friends().all(), n -> Myriad.friends().add(n), n -> Myriad.friends().remove(n)),
+		new FriendSync.Side(FriendManager::getFriends, FriendManager::addFriend, FriendManager::delFriend));
 	private int tick;
 	private boolean announced;
 
 	BozeBridge(AddonContext ctx) {
 		this.ctx = ctx;
 		discover();
+		syncFriends();
 	}
 
 	/** Whether Boze has started and filled its module registry. */
@@ -57,7 +63,18 @@ final class BozeBridge {
 		tick++;
 		for (BozeModule m : mirrors) m.pullState();
 		if (tick % 10 == 0) for (BozeModule m : mirrors) m.pullSettings();
-		if (tick % 20 == 0) discover();
+		if (tick % 20 == 0) {
+			discover();
+			syncFriends();
+		}
+	}
+
+	private void syncFriends() {
+		try {
+			friends.sync();
+		} catch (RuntimeException e) {
+			ctx.logger().warn("Could not sync friends with Boze: {}", e.toString());
+		}
 	}
 
 	private void discover() {

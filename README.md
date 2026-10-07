@@ -35,6 +35,9 @@ after updating it), then here:
 - **Two-way, live.** Toggle or edit in Boze's GUI, through its commands or by loading one of its profiles, and Myriad
   shows it within half a second. Edits in Myriad reach Boze at once.
 - **Modules from Boze's own addons** are bridged too, in the category their addon declared.
+- **One friends list.** Myriad's and Boze's friends are kept the same: on first contact the two lists are merged,
+  then a friend added or removed on either side (Myriad's Friends panel or `.friend`, Boze's GUI or command) is
+  added or removed on the other within a second.
 
 ## What stays Boze's
 
@@ -61,6 +64,7 @@ the other way.
 | `BozeModule.java` | one mirror: toggle, keybind, hold and list visibility both ways |
 | `OptionBindings.java` | Boze options to Myriad settings: groups, visibility, each type's binding |
 | `BozeCategories.java` | which category a Boze module goes in |
+| `FriendSync.java` | the two friend lists reconciled by diffing against the last sync |
 | `RangeSetting.java` | a low/high setting for Boze's range sliders |
 
 The tests build Boze modules from the published API jar and check the translation and the sync without the client.
