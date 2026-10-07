@@ -12,8 +12,7 @@ bridge, and does nothing.
 
 ## Building
 
-Myriad isn't on a public maven yet: run `./gradlew publishToMavenLocal` in the Myriad repository once (and again
-after updating it), then here:
+Myriad comes from its maven (`https://fyzz-dev.github.io/myriad`), so a checkout builds on its own:
 
 ```bash
 ./gradlew build                 # build/libs/myriad-boze-<v>.jar
