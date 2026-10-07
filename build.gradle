@@ -1,0 +1,86 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+repositories {
+	// Myriad isn't on a public maven yet: run `./gradlew publishToMavenLocal` in the Myriad repo once (and again
+	// after updating it) and Gradle picks it up from ~/.m2.
+	mavenLocal()
+	// Boze publishes its addon API (and the Orbit event bus it uses) here.
+	maven {
+		name = "Boze"
+		url = "https://maven.boze.dev/releases"
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	implementation "dev.myriad:myriad:${project.myriad_version}"
+	// Only for `./gradlew runClient`, to test next to the stock modules; the addon doesn't use its classes.
+	localRuntime "dev.myriad:myriad-essentials:${project.myriad_version}"
+
+	// Boze's public addon API: compiled against only. At runtime Boze itself provides these classes; without Boze the
+	// addon notices and bridges nothing.
+	compileOnly "dev.boze:boze-api:${project.boze_api_version}+${project.minecraft_version}"
+
+	// Tests build Boze modules from the API jar and drive them without the client.
+	testImplementation "dev.boze:boze-api:${project.boze_api_version}+${project.minecraft_version}"
+	testRuntimeOnly "meteordevelopment:orbit:${project.orbit_version}"
+	testImplementation platform("org.junit:junit-bom:5.11.4")
+	testImplementation "org.junit.jupiter:junit-jupiter"
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+test {
+	useJUnitPlatform()
+	testLogging {
+		events "passed", "skipped", "failed"
+		exceptionFormat "full"
+	}
+}
+
+loom {
+	runs {
+		client {
+			// ./gradlew runClient -PopenDesktop opens the Myriad menu over the title screen on launch.
+			property("myriad.openDesktop", project.hasProperty("openDesktop").toString())
+			if (project.hasProperty("screenshotEvery")) property("myriad.screenshotEvery", project.property("screenshotEvery").toString())
+			if (project.hasProperty("quickPlay")) programArgs("--quickPlaySingleplayer", project.property("quickPlay").toString())
+		}
+	}
+}
+
+processResources {
+	def props = [version: project.version, myriad_version: project.myriad_version, minecraft_version: project.minecraft_version]
+	inputs.properties props
+	filesMatching("fabric.mod.json") {
+		expand props
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 25
+	it.options.encoding = "UTF-8"
+}
+
+java {
+	withSourcesJar()
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+}
+
+jar {
+	from("LICENSE") {
+		rename { "${it}_${project.base.archivesName.get()}" }
+	}
+}

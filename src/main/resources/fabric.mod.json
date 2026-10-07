@@ -1,0 +1,24 @@
+{
+	"schemaVersion": 1,
+	"id": "myriad-boze",
+	"version": "${version}",
+	"name": "Myriad Boze",
+	"description": "Every Boze module in Myriad's menu: toggles, settings and keybinds, kept in sync with Boze. Needs Myriad and Boze.",
+	"authors": ["Myriad contributors"],
+	"license": "CC0-1.0",
+	"contact": {
+		"sources": "https://github.com/fyzz-dev/myriad-boze",
+		"issues": "https://github.com/fyzz-dev/myriad-boze/issues"
+	},
+	"environment": "client",
+	"entrypoints": {
+		"myriad": ["dev.myriad.boze.BozeAddon"]
+	},
+	"depends": {
+		"myriad": ">=${myriad_version}",
+		"minecraft": "~${minecraft_version}"
+	},
+	"recommends": {
+		"boze-loader": "*"
+	}
+}
