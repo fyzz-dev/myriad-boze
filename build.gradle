@@ -30,7 +30,7 @@ dependencies {
 
 	implementation "dev.myriad:myriad:${project.myriad_version}"
 	// Only for `./gradlew runClient`, to test next to the stock modules; the addon doesn't use its classes.
-	localRuntime "dev.myriad:myriad-essentials:${project.myriad_version}"
+	localRuntime "dev.myriad:myriad-essentials:${project.essentials_version}"
 
 	// Boze's public addon API: compiled against only. At runtime Boze itself provides these classes; without Boze the
 	// addon notices and bridges nothing.
