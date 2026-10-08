@@ -5,7 +5,7 @@ appears as a Myriad module: the same toggle, its settings as Myriad settings, it
 on the module card, searchable from the launcher, with Myriad's windows, workspaces and themes. Boze keeps working as
 before: this addon is a second front end for it, not a replacement.
 
-Needs [Myriad](https://myriadclient.dev/) ([source](https://github.com/fyzz-dev/myriad)) (0.1.0 or later: it relies on `Module.isMirror()` and on
+Needs [Myriad](https://myriadclient.dev/) ([source](https://github.com/fyzz-dev/myriad)) (0.2.0 or later: it relies on `Module.isMirror()` and on
 registries that stay open after startup), Myriad Boze and Boze (through its loader) in `mods/`. Boze's addon API has
 to be present, which it is whenever Boze itself runs; without Boze the addon loads, notes that there's nothing to
 bridge, and does nothing.
@@ -27,7 +27,8 @@ Myriad comes from its maven (`https://fyzz-dev.github.io/myriad`), so a checkout
   of its GUI categories a module is in, so the category is guessed from the module's package and name; the rest go
   in a *Boze* category. A module in the wrong window is a cosmetic miss: add its name to `BozeCategories.NAMES`.
 - **Settings, translated.** Boze pages and folders become setting groups ("Render", "Misc · Sounds"); sub-options of a
-  toggle show only while it's on. Toggles, sliders, two-handle range sliders, modes, binds and colours (with a
+  toggle show only while it's on, and options that only apply in some modes show only in those modes, as in Boze's
+  own GUI (Aura in Grim mode shows 78 of its 94 settings, Auto Mine 48 of 79). Toggles, sliders, two-handle range sliders, modes, binds and colours (with a
   separate outline opacity where Boze has one) all edit in place.
 - **Keybinds.** The module's bind is Boze's: set it in either GUI, it shows in both, and Boze handles the key. Hold
   mode and *Show In List* are Boze's "only while holding" and "visible" flags.
@@ -62,11 +63,18 @@ the other way.
 | `BozeBridge.java` | finds Boze's modules (and ones its addons add later), registers mirrors, runs the sync |
 | `BozeModule.java` | one mirror: toggle, keybind, hold and list visibility both ways |
 | `OptionBindings.java` | Boze options to Myriad settings: groups, visibility, each type's binding |
+| `BozeVisibility.java` | when Boze's own GUI shows an option (its per-mode conditions), found on Boze's internal options |
 | `BozeCategories.java` | which category a Boze module goes in |
 | `FriendSync.java` | the two friend lists reconciled by diffing against the last sync |
 | `RangeSetting.java` | a low/high setting for Boze's range sliders |
 
 The tests build Boze modules from the published API jar and check the translation and the sync without the client.
-Boze is a paid client that runs through its own loader, so a real run needs a Boze account; what only a real run can
-confirm (its startup order relative to Myriad, which packages its module classes live in, whether `getOptions()`
-lists nested options) is handled either way, but has not been seen.
+A real run needs a Boze account: put `boze-loader` in `run/mods` and `./gradlew runClient`; the loader signs in and
+keeps its token in `~/.local/share/boze`. Seen on a real run (Boze loader 1.0.27, Minecraft 26.2): Boze starts after
+Myriad and the bridge picks it up a moment later (245 modules); its client modules live in `dev.boze.client`; and
+`getOptions()` lists every option flat, with parents set. Boze loads its profiles from the account, so settings
+changed in a test run may reach your real Boze config: test with the settings you're willing to change.
+
+Boze's client modules don't use the API's option visibility (`isVisible()` is always true for them); their GUI's
+conditions sit on Boze's internal options, which `BozeVisibility` finds by shape (Boze is obfuscated, so names change
+between versions). If a Boze update changes that shape, options simply all show again, as before.

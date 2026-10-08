@@ -34,6 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
@@ -220,13 +221,17 @@ final class OptionBindings {
 		return names.isEmpty() ? "General" : String.join(" · ", names);
 	}
 
-	/** Visible when Boze says so and every toggle it sits under is on. */
+	/**
+	 * Visible when Boze's GUI would show it (its own condition, mostly the mode, see {@link BozeVisibility}, and the
+	 * API's), and every toggle it sits under is on.
+	 */
 	static Supplier<Boolean> visibility(Option<?> o) {
 		List<ToggleOption> gates = new ArrayList<>(1);
 		for (Option<?> p = o.getParent(); p != null; p = p.getParent()) if (p instanceof ToggleOption t) gates.add(t);
+		BooleanSupplier boze = BozeVisibility.of(o);
 		return () -> {
 			try {
-				if (!o.isVisible()) return false;
+				if (!o.isVisible() || boze != null && !boze.getAsBoolean()) return false;
 				for (ToggleOption t : gates) if (!t.getValue()) return false;
 				return true;
 			} catch (RuntimeException e) {

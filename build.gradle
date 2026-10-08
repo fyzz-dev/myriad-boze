@@ -58,6 +58,10 @@ loom {
 			// ./gradlew runClient -PopenDesktop opens the Myriad menu over the title screen on launch.
 			property("myriad.openDesktop", project.hasProperty("openDesktop").toString())
 			if (project.hasProperty("screenshotEvery")) property("myriad.screenshotEvery", project.property("screenshotEvery").toString())
+			property("myriad.auditMixins", project.hasProperty("auditMixins").toString())
+			// Lines appended to run/myriad-dev-inbox are run in game (Myriad commands, the menu, screenshots), so a
+			// script can drive the client; Essentials' tools/grim-test/client writes there.
+			property("myriad.devConsole", "myriad-dev-inbox")
 			if (project.hasProperty("quickPlay")) programArgs("--quickPlaySingleplayer", project.property("quickPlay").toString())
 		}
 	}
