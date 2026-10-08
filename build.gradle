@@ -28,9 +28,17 @@ dependencies {
 	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
-	implementation "dev.myriad:myriad:${project.myriad_version}"
+	// The released core by default. While changing core and this addon together, build core's jar in a checkout next to
+	// this one (`./gradlew :core:jar` there) and point here at it: `./gradlew runClient -PcoreDir=../myriad`.
+	if (project.hasProperty("coreDir")) {
+		implementation fileTree(dir: "${project.coreDir}/core/build/libs", include: "myriad-*.jar", exclude: ["*-sources.jar", "*-javadoc.jar"])
+	} else {
+		implementation "dev.myriad:myriad:${project.myriad_version}"
+	}
 	// Only for `./gradlew runClient`, to test next to the stock modules; the addon doesn't use its classes.
-	localRuntime "dev.myriad:myriad-essentials:${project.essentials_version}"
+	localRuntime("dev.myriad:myriad-essentials:${project.essentials_version}") {
+		if (project.hasProperty("coreDir")) exclude group: "dev.myriad", module: "myriad"
+	}
 
 	// Boze's public addon API: compiled against only. At runtime Boze itself provides these classes; without Boze the
 	// addon notices and bridges nothing.
